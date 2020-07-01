@@ -30,6 +30,195 @@ void showToast(message) {
 class _Barberlist extends State<Barber> {
   int _selectedIndex = 0;
   String username;
+  DocumentSnapshot _snapsho;
+
+  /////////////////time/////////////////////////////////////
+  String timeplace;
+  void getdatetime() async {
+    Response response =
+        await get('http://worldtimeapi.org/api/timezone/Africa/Algiers');
+    Map data = jsonDecode(response.body);
+    String offset = data['utc_offset'].substring(1, 3);
+    DateTime now = DateTime.parse(data['datetime']);
+    now = now.add(Duration(hours: int.parse(offset)));
+    timeplace = now.toString();
+  }
+
+  //////////////////time ////////////////////////
+ 
+
+  Set<Marker> _createMarker(double posisionlat, double posotionlon) {
+    return <Marker>[
+      Marker(
+          markerId: MarkerId('home'),
+          position: LatLng(posisionlat, posotionlon),
+          icon: BitmapDescriptor.defaultMarker,
+          infoWindow: InfoWindow(title: 'Current Location'))
+    ].toSet();
+  }
+
+  
+
+ Future<DocumentSnapshot> snapshotin() async {
+   final String idofbarber = ModalRoute.of(context).settings.arguments;
+   print(idofbarber);
+   DocumentSnapshot _snapshotss = await Firestore.instance
+        .collection('barbers')
+        .document(idofbarber)
+        .get();
+        print(_snapshotss.data['posix']);
+    return _snapshotss;
+  }
+    void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    snapshotin().then((value) =>  _snapsho = value);
+    final String idofbarber = ModalRoute.of(context).settings.arguments;
+
+
+    final List<Widget> _children =[
+      Container(
+        child: StreamBuilder<QuerySnapshot>(
+          stream: Firestore.instance
+              .collection('barbers')
+              .document(idofbarber)
+              .collection('listewaiter')
+              .snapshots(),
+          builder:
+              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            if (snapshot.hasError) return new Text('Error: ${snapshot.error}');
+            switch (snapshot.connectionState) {
+              case ConnectionState.waiting:
+                return new Center(
+                  child: SpinKitRotatingCircle(
+                    color: Colors.red[900],
+                    size: 50.0,
+                  ),
+                );
+              default:
+                return new ListView(
+                  children:
+                      snapshot.data.documents.map((DocumentSnapshot document) {
+                    return new ListTile(
+                      title: new Text(
+                        document['name'],
+                        style: TextStyle(
+                            color: Colors.blue[700],
+                            fontSize: 25,
+                            fontFamily: 'Digital-7'),
+                      ),
+                      subtitle: new Text(
+                        document['time'],
+                        style: TextStyle(
+                            color: Colors.blue[700],
+                            fontSize: 18,
+                            fontFamily: 'Digital-7'),
+                      ),
+                    );
+                  }).toList(),
+                );
+            }
+          },
+        ),
+      ),
+      Container(
+        child: Text("details"),
+      ),
+      StreamBuilder<QuerySnapshot>(
+          builder:
+              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapsho) {
+            if (snapsho.hasError) return new Text('Error: ${snapsho.error}');
+            switch (snapsho.connectionState) {
+              case ConnectionState.waiting:
+                return new Center(
+                  child: SpinKitRotatingCircle(
+                    color: Colors.red[900],
+                    size: 100.0,
+                  ),
+                );
+              default:
+                return GoogleMap(
+        mapType: MapType.normal,
+        markers: _createMarker(_snapsho.data['posix'], _snapsho.data['posiy']),
+        initialCameraPosition: CameraPosition(
+          target: LatLng(_snapsho.data['posix'],_snapsho.data['posiy'] ),
+          zoom: 12.0,
+        ),
+      );
+            }
+          },
+        ),
+      
+      ];
+   return Scaffold(
+      body:_children[_selectedIndex],
+          bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Color.fromARGB(100, 100, 100, 100),
+        iconSize: 25,
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.format_list_numbered),
+            title: Text('LIST_WAITING'),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.assignment),
+            title: Text('DETAILS'),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.place),
+            title: Text('LOCALISATION'),
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.amber[800],
+        onTap: _onItemTapped,
+      ),
+    );
+}
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+  int _selectedIndex = 0;
+  String username;
   DocumentSnapshot snapshot;
   final Completer c = new Completer();
   //DocumentSnapshot snapshots;
@@ -42,12 +231,6 @@ class _Barberlist extends State<Barber> {
     print(snapshot.data['posix']);
   }*/
 
-  @override
-  void initState() {
-    super.initState();
-    separate();
-  }
-
   void separate() async {
     final String idofbarber = ModalRoute.of(context).settings.arguments;
     snapshot = await Firestore.instance
@@ -59,7 +242,7 @@ class _Barberlist extends State<Barber> {
     } else {}
   }
 
-  /////////////////time/////////////////////
+  /////////////////time/////////////////////////////////////
   String timeplace;
   void getdatetime() async {
     Response response =
@@ -207,3 +390,4 @@ class _Barberlist extends State<Barber> {
     );
   }
 }
+*/
