@@ -1,16 +1,16 @@
-
+import 'package:barber/inscription/login.dart';
 import 'package:flutter/material.dart';
-import 'package:barber/login.dart';
 
 void main() => runApp(
-    Myapp(),
-);
+      Myapp(),
+    );
+
 class Myapp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: new ThemeData(
-        brightness:Brightness.light,
+        brightness: Brightness.light,
         primarySwatch: Colors.red,
         primaryColor: const Color(0xFF6b9080),
         accentColor: const Color(0xFFf6fff8),
